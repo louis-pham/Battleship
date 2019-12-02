@@ -1,7 +1,10 @@
 /*----- constants -----*/
+let ROWS = ["A","B","C","D","E","F","G","H","I","J"];
+let COLUMNS = [0,1,2,3,4,5,6,7,8,9];
+let TIMEOUT = 300;
 
 /*----- app's state (variables) -----*/
-let currentPlayer, player1, player2, winner;
+let currentPlayer, player1, player2, winner, isRendering;
 
 /*----- cached element references -----*/
 let boardElement = document.querySelector("#board");
@@ -9,18 +12,25 @@ let messageElement = document.querySelector("#message");
 let shipListElement = document.querySelector("#ship-list");
 
 /*----- event listeners -----*/
-// board (cell) click event
 boardElement.addEventListener("click", (e) => {
   /*
-  if there's no winner, it's the player's turn, the shot hasn't been taken before and it wasn't the board that was clicked,
+  if there's no winner, it's the player's turn, nothing is rendering, the shot hasn't been taken before and it wasn't the board that was clicked,
     check the shot
   */
   if ( !winner
     && currentPlayer === player1
+    && !isRendering
     && player1.hits.indexOf(e.target.id) === -1
     && player1.misses.indexOf(e.target.id) === -1
     && e.target.id !== "board" ) {
+      isRendering = true;
       registerShot(e.target.id);
+      setTimeout(() => {
+        currentPlayer = player2;
+        render();
+        setTimeout(doPlayer2, TIMEOUT);
+        isRendering = false;
+      }, TIMEOUT);
   }
 });
 
@@ -40,7 +50,6 @@ function registerShot(coordinate) {
   check if player's won
   switch to opponent's turn
   */
-  console.log(coordinate);
   let missed = true;
   loop1:
   for (ship in opponent.ships) {
@@ -54,9 +63,7 @@ function registerShot(coordinate) {
     }
   }
   if (missed) currentPlayer.misses.push(coordinate);
-  // currentPlayer = opponent;
   render();
-  return;
 }
 
 function doPlayer2() {
@@ -64,10 +71,25 @@ function doPlayer2() {
     choose a coordinate not within shots already taken (for now, choose randomly)
     register shot
   */
-  return;
+  let validShotFound = false;
+  let shotCoordinate;
+  while (!validShotFound) {
+    shotCoordinate = ROWS[Math.floor(Math.random()*ROWS.length)] + COLUMNS[Math.floor(Math.random()*COLUMNS.length)];
+    console.log(shotCoordinate);
+    if (player2.hits.indexOf(shotCoordinate) === -1
+        && player2.misses.indexOf(shotCoordinate) === -1 ) {
+      validShotFound = true;
+    }
+  }
+  registerShot(shotCoordinate);
+  setTimeout(() => {
+    currentPlayer = player1;
+    render();
+  }, TIMEOUT);
 }
 
 function init() {
+  isRendering = false;
   winner = null;
   player1 = {
     name: "Player 1 (Human)",
@@ -102,6 +124,15 @@ function init() {
 
 function render() {
   let opponent = currentPlayer === player1 ? player2 : player1;
+  // reset board to grey
+  for (shot of opponent.hits) {
+    boardElement.querySelector(`#${shot}`).style.backgroundColor = "#333";
+  }
+  for (shot of opponent.misses) {
+    boardElement.querySelector(`#${shot}`).style.backgroundColor = "#333";
+  }
+
+  // render currentPlayer's shots
   for (shot of currentPlayer.hits) {
     boardElement.querySelector(`#${shot}`).style.backgroundColor = "red";
   }
