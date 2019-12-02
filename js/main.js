@@ -1,6 +1,7 @@
 /*----- constants -----*/
 let ROWS = ["A","B","C","D","E","F","G","H","I","J"];
 let COLUMNS = [0,1,2,3,4,5,6,7,8,9];
+let ORIENTATIONS = ["n","e","s","w"];
 let TIMEOUT = 300;
 
 /*----- app's state (variables) -----*/
@@ -25,12 +26,14 @@ boardElement.addEventListener("click", (e) => {
     && e.target.id !== "board" ) {
       isRendering = true;
       registerShot(e.target.id);
-      setTimeout(() => {
-        currentPlayer = player2;
-        render();
-        setTimeout(doPlayer2, TIMEOUT);
-        isRendering = false;
-      }, TIMEOUT);
+      if (!winner) {
+        setTimeout(() => {
+          currentPlayer = player2;
+          render();
+          setTimeout(doPlayer2, TIMEOUT);
+          isRendering = false;
+        }, TIMEOUT);
+      }
   }
 });
 
@@ -46,7 +49,6 @@ function registerShot(coordinate) {
       add coordinate to player's hits
       reduce opponent ship's health
       break out early
-
   check if player's won
   switch to opponent's turn
   */
@@ -62,8 +64,65 @@ function registerShot(coordinate) {
       }
     }
   }
-  if (missed) currentPlayer.misses.push(coordinate);
+  if (missed) {
+    currentPlayer.misses.push(coordinate)
+  } else {
+    // check for winner
+    let remainingShips = Object.keys(opponent.ships).length;
+    for (ship in opponent.ships) {
+      if (opponent.ships[ship].health === 0) remainingShips -= 1;
+    }
+    if (remainingShips === 0) winner = currentPlayer;
+  };
   render();
+}
+
+function getRandomCoordinate() {
+  return ROWS[Math.floor(Math.random()*ROWS.length)] + COLUMNS[Math.floor(Math.random()*COLUMNS.length)];
+}
+
+function getSpanningCoordinates(headCoordinate, orientation, health) {
+  // vertical variables
+  let columnCoordinate, headRowIndex, tailRowIndex;
+  // horizontal variables
+  let rowCoordinate, headColumnIndex, tailColumnIndex;
+  // if the coordinates go out of bounds, return undefined, otherwise return an array of coordinates
+  switch (orientation) {
+    case "n":
+      columnCoordinate = headCoordinate.charAt(1);
+      // since rows are letters, get index of the ship's row coordinate to properly generate the other coordinates
+      headRowIndex = ROWS.indexOf(headCoordinate.charAt(0));
+      tailRowIndex = headRowIndex + 1 - health;
+      if (tailRowIndex >= 0) {
+        return ROWS.slice(tailRowIndex, headRowIndex + 1).map(rowCoordinate => `${rowCoordinate}${columnCoordinate}`);
+      }
+      break;
+    case "s":
+      columnCoordinate = headCoordinate.charAt(1);
+      headRowIndex = ROWS.indexOf(headCoordinate.charAt(0));
+      tailRowIndex = headRowIndex + health;
+      if (tailRowIndex <= ROWS.length) {
+        return ROWS.slice(headRowIndex, tailRowIndex).map((rowCoordinate) => `${rowCoordinate}${columnCoordinate}`);
+      }
+      break;
+    case "w":
+      // for the lateral cases, the index IS the coordinate, so no need to lookup position in COLUMNS array
+      rowCoordinate = headCoordinate.charAt(0);
+      headColumnIndex = parseInt(headCoordinate.charAt(1));
+      tailColumnIndex = headColumnIndex - health + 1;
+      if (tailColumnIndex >= 0) {
+        return COLUMNS.slice(tailColumnIndex, headColumnIndex + 1).map(columnCoordinate => `${rowCoordinate}${columnCoordinate}`);
+      }
+      break;
+    case "e":
+      rowCoordinate = headCoordinate.charAt(0);
+      headColumnIndex = parseInt(headCoordinate.charAt(1));
+      tailColumnIndex = headColumnIndex + health;
+      if (tailColumnIndex <= COLUMNS.length) {
+        return COLUMNS.slice(headColumnIndex, tailColumnIndex).map(columnCoordinate => `${rowCoordinate}${columnCoordinate}`);
+      }
+      break;
+  }
 }
 
 function doPlayer2() {
@@ -74,7 +133,7 @@ function doPlayer2() {
   let validShotFound = false;
   let shotCoordinate;
   while (!validShotFound) {
-    shotCoordinate = ROWS[Math.floor(Math.random()*ROWS.length)] + COLUMNS[Math.floor(Math.random()*COLUMNS.length)];
+    shotCoordinate = getRandomCoordinate();
     console.log(shotCoordinate);
     if (player2.hits.indexOf(shotCoordinate) === -1
         && player2.misses.indexOf(shotCoordinate) === -1 ) {
@@ -86,6 +145,42 @@ function doPlayer2() {
     currentPlayer = player1;
     render();
   }, TIMEOUT);
+}
+
+function placeShips(player) {
+  /*
+    choose a head position and orientation
+    check the coordinates the ship will span over (no overlaps, out of bounds)
+    if they're all good, assign the coordinates
+    else, redo
+  */
+  for (ship in player.ships) {
+    let openSpotFound = false;
+    while (!openSpotFound) {
+      let headCoordinate = getRandomCoordinate();
+      let orientation = ORIENTATIONS[Math.floor(Math.random()*ORIENTATIONS.length)];
+      let spanningCoordinates = getSpanningCoordinates(headCoordinate, orientation, player.ships[ship].health);
+      if (spanningCoordinates) {
+        // check for overlaps
+        let overlapFound = false;
+        overlapCheck:
+        for (otherShip in player.ships) {
+          if (ship !== otherShip) {
+            for (coordinate of spanningCoordinates) {
+              if (player.ships[otherShip].coordinates.indexOf(coordinate) >= 0) {
+                overlapFound = true;
+                break overlapCheck;
+              }
+            }
+          }
+        }
+        if (!overlapFound) {
+          player.ships[ship].coordinates = spanningCoordinates;
+          openSpotFound = true;
+        }
+      }
+    }
+  }
 }
 
 function init() {
@@ -117,19 +212,33 @@ function init() {
     misses: []
   };
 
+    // TODO: let player1 choose their own positions
+  placeShips(player1);
+  placeShips(player2);
+
+  for (ship in player2.ships) {
+    console.log(player2.ships[ship].coordinates);
+  }
+
   currentPlayer = player1;
-  // assign ship coordinates (static for now, randomly later, then let user choose own if time permitting)
+
   render();
+}
+
+function renderWinner() {
+  if (winner) {
+    alert("you win!");
+  }
 }
 
 function render() {
   let opponent = currentPlayer === player1 ? player2 : player1;
-  // reset board to grey
+  // reset board to water
   for (shot of opponent.hits) {
-    boardElement.querySelector(`#${shot}`).style.backgroundColor = "#333";
+    boardElement.querySelector(`#${shot}`).style.backgroundColor = "lightblue";
   }
   for (shot of opponent.misses) {
-    boardElement.querySelector(`#${shot}`).style.backgroundColor = "#333";
+    boardElement.querySelector(`#${shot}`).style.backgroundColor = "lightblue";
   }
 
   // render currentPlayer's shots
@@ -147,6 +256,7 @@ function render() {
     }
   }
   messageElement.textContent = `${currentPlayer.name}'s turn`;
-
-  // render ship lists for both sides
+  renderWinner();
+  // TODO: render ship lists for both sides
+  // TODO: render a minimap for player 1's ships?
 }
