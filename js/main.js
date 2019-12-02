@@ -1,7 +1,7 @@
 /*----- constants -----*/
 let ROWS = ["A","B","C","D","E","F","G","H","I","J"];
 let COLUMNS = [0,1,2,3,4,5,6,7,8,9];
-let ORIENTATIONS = ["n","e","s","w"];
+let ORIENTATIONS = [1,2,-1,-2]; // north:1,south:-1,east:2,west:-2
 let TIMEOUT = 300;
 
 /*----- app's state (variables) -----*/
@@ -10,7 +10,11 @@ let currentPlayer, player1, player2, winner, isRendering;
 /*----- cached element references -----*/
 let boardElement = document.querySelector("#board");
 let messageElement = document.querySelector("#message");
-let shipListElement = document.querySelector("#ship-list");
+let minimapElement = document.querySelector("#minimap");
+let player1NameElement = document.querySelector("#player1-name");
+let player1ShipListElement = document.querySelector("#player1-info .ship-list");
+let player2NameElement = document.querySelector("#player2-name");
+let player2ShipListElement = document.querySelector("#player2-info .ship-list");
 
 /*----- event listeners -----*/
 boardElement.addEventListener("click", (e) => {
@@ -88,7 +92,7 @@ function getSpanningCoordinates(headCoordinate, orientation, health) {
   let rowCoordinate, headColumnIndex, tailColumnIndex;
   // if the coordinates go out of bounds, return undefined, otherwise return an array of coordinates
   switch (orientation) {
-    case "n":
+    case 1:
       columnCoordinate = headCoordinate.charAt(1);
       // since rows are letters, get index of the ship's row coordinate to properly generate the other coordinates
       headRowIndex = ROWS.indexOf(headCoordinate.charAt(0));
@@ -97,7 +101,7 @@ function getSpanningCoordinates(headCoordinate, orientation, health) {
         return ROWS.slice(tailRowIndex, headRowIndex + 1).map(rowCoordinate => `${rowCoordinate}${columnCoordinate}`);
       }
       break;
-    case "s":
+    case -1:
       columnCoordinate = headCoordinate.charAt(1);
       headRowIndex = ROWS.indexOf(headCoordinate.charAt(0));
       tailRowIndex = headRowIndex + health;
@@ -105,7 +109,7 @@ function getSpanningCoordinates(headCoordinate, orientation, health) {
         return ROWS.slice(headRowIndex, tailRowIndex).map((rowCoordinate) => `${rowCoordinate}${columnCoordinate}`);
       }
       break;
-    case "w":
+    case -2:
       // for the lateral cases, the index IS the coordinate, so no need to lookup position in COLUMNS array
       rowCoordinate = headCoordinate.charAt(0);
       headColumnIndex = parseInt(headCoordinate.charAt(1));
@@ -114,7 +118,7 @@ function getSpanningCoordinates(headCoordinate, orientation, health) {
         return COLUMNS.slice(tailColumnIndex, headColumnIndex + 1).map(columnCoordinate => `${rowCoordinate}${columnCoordinate}`);
       }
       break;
-    case "e":
+    case 2:
       rowCoordinate = headCoordinate.charAt(0);
       headColumnIndex = parseInt(headCoordinate.charAt(1));
       tailColumnIndex = headColumnIndex + health;
@@ -134,7 +138,6 @@ function doPlayer2() {
   let shotCoordinate;
   while (!validShotFound) {
     shotCoordinate = getRandomCoordinate();
-    console.log(shotCoordinate);
     if (player2.hits.indexOf(shotCoordinate) === -1
         && player2.misses.indexOf(shotCoordinate) === -1 ) {
       validShotFound = true;
@@ -187,7 +190,7 @@ function init() {
   isRendering = false;
   winner = null;
   player1 = {
-    name: "Player 1 (Human)",
+    name: "💃 Player 1 🕺",
     ships: {
       carrier: { health: 5, coordinates: [] },
       battleship: { health: 4, coordinates: [] },
@@ -200,7 +203,7 @@ function init() {
   };
 
   player2 = {
-    name: "Player 2 (Robot)",
+    name: "🤖 Player 2 🤖",
     ships: {
       carrier: { health: 5, coordinates: ["A0","A1","A2","A3","A4"] },
       battleship: { health: 4, coordinates: ["D2","D3","D4","D5"] },
@@ -219,20 +222,45 @@ function init() {
   for (ship in player2.ships) {
     console.log(player2.ships[ship].coordinates);
   }
-
+  player1NameElement.textContent = player1.name;
+  player1ShipListElement.innerHTML = player1.ships;
+  player2NameElement.textContent = player2.name;
+  player2ShipListElement.innerHTML = player2.ships;
   currentPlayer = player1;
-
   render();
+}
+
+function renderMinimap() {
+  for (ship in player1.ships) {
+    let currentShip = player1.ships[ship];
+    let shipColor = currentShip.health === 0 ? "red" : "green";
+    for (coordinate of currentShip.coordinates) {
+      minimapElement.querySelector(`#m${coordinate}`).style.backgroundColor = player2.hits.indexOf(coordinate) >= 0 ? "red" : shipColor;
+    }
+  }
+}
+
+function renderShipList(player) {
+  let htmlString = "";
+  for (ship in player.ships) {
+    let shipColor = "green";
+    if (player.ships[ship].health === 0) {
+      shipColor = "red";
+    }
+    htmlString += `<li style="color: ${shipColor}">${ship}</li>`;
+  }
+  return htmlString;
 }
 
 function renderWinner() {
   if (winner) {
-    alert("you win!");
+    messageElement.textContent = `The winner is ${winner.name}!`;
   }
 }
 
 function render() {
   let opponent = currentPlayer === player1 ? player2 : player1;
+  renderMinimap();
   // reset board to water
   for (shot of opponent.hits) {
     boardElement.querySelector(`#${shot}`).style.backgroundColor = "lightblue";
@@ -255,8 +283,8 @@ function render() {
       }
     }
   }
-  messageElement.textContent = `${currentPlayer.name}'s turn`;
+  messageElement.textContent = `Current player: ${currentPlayer.name}`;
+  player1ShipListElement.innerHTML = renderShipList(player1);
+  player2ShipListElement.innerHTML = renderShipList(player2);
   renderWinner();
-  // TODO: render ship lists for both sides
-  // TODO: render a minimap for player 1's ships?
 }
