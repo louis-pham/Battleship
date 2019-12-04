@@ -1,11 +1,37 @@
 /*----- constants -----*/
-let ROWS = ["A","B","C","D","E","F","G","H","I","J"];
-let COLUMNS = [0,1,2,3,4,5,6,7,8,9];
-let DIRECTIONS = [1,2,-1,-2]; // north:1,south:-1,east:2,west:-2
-let TIMEOUT = 300;
+const ROWS = ["A","B","C","D","E","F","G","H","I","J"];
+const COLUMNS = [0,1,2,3,4,5,6,7,8,9];
+/*
+  north: 1
+  south: -1
+  east: 2
+  west: -2
+*/
+const DIRECTIONS = [1,2,-1,-2];
+const TIMEOUT = 300;
+const SHIPS = {
+  "carrier": { health: 5 },
+  "battleship": { health: 4 },
+  "cruiser": { health: 3 },
+  "submarine": { health: 3 },
+  "destroyer": { health: 2 }
+};
+// used to keep track of ships when user is placing
+const SHIPNAMES = Object.keys(SHIPS);
+
+class Ship {
+  constructor(name, health, coordinates) {
+    this.name = name;
+    this.health = health;
+    this.coordinates = coordinates;
+  }
+}
 
 /*----- app's state (variables) -----*/
+// variables for when user is placing ships; store previous head coordinate to remove styling later
+let isPlacingShips, currentCoordinateChosen, currentPlacingShipIndex, previousCoordinateChosen;
 let currentPlayer, player1, player2, winner, isRendering;
+
 
 /*----- cached element references -----*/
 let boardElement = document.querySelector("#board");
@@ -17,7 +43,127 @@ let player2NameElement = document.querySelector("#player2-name");
 let player2ShipListElement = document.querySelector("#player2-info .ship-list");
 
 /*----- event listeners -----*/
-boardElement.addEventListener("click", (e) => {
+
+boardElement.addEventListener("click", shipPlacementHandler);
+document.addEventListener("keydown", shipDirectionHandler);
+function registerGameListener() {
+  boardElement.addEventListener("click", gameBoardHandler);
+}
+
+/*----- functions -----*/
+
+init();
+
+function init() {
+  isPlacingShips = true;
+  currentCoordinateChosen = null;
+  currentPlacingShipIndex = 0;
+  isRendering = false;
+  winner = null;
+  player1 = {
+    name: "💃 Player 1 🕺",
+    ships: {
+      // carrier: { health: 5, coordinates: ["D2","D3","D4","D5","D6"] },
+      // battleship: { health: 4, coordinates: ["E3","F3","G3","H3"] },
+      // cruiser: { health: 3, coordinates: ["E4","E5","E6"] },
+      // submarine: { health: 3, coordinates: ["F4","F5","F6"] },
+      // destroyer: { health: 2, coordinates: ["G4","G5"] },
+    },
+    hits: [],
+    misses: []
+  };
+
+  player2 = {
+    name: "🤖 Player 2 🤖",
+    ships: {
+      // carrier: { health: 5, coordinates: ["A0","A1","A2","A3","A4"] },
+      // battleship: { health: 4, coordinates: ["D2","D3","D4","D5"] },
+      // cruiser: { health: 3, coordinates: ["D8","E8","F8"] },
+      // submarine: { health: 3, coordinates: ["G3","H3","I3"] },
+      // destroyer: { health: 2, coordinates: ["J5","J6"] },
+    },
+    hits: [],
+    misses: [],
+    searchArray: [],
+    hitDuringSearch: [],
+  };
+  render();
+}
+
+function startGame() {
+  // placeShips(player1);
+  placeShips(player2);
+  player1NameElement.textContent = player1.name;
+  player1ShipListElement.innerHTML = player1.ships;
+  player2NameElement.textContent = player2.name;
+  player2ShipListElement.innerHTML = player2.ships;
+  currentPlayer = player1;
+  registerGameListener();
+  render();
+}
+
+function shipPlacementHandler(e) {
+  if (e.target.classList.contains("cell")){
+    if (isPlacingShips && !currentCoordinateChosen) {
+      console.log("put ship here", e.target.id);
+      previousCoordinateChosen = null;
+      currentCoordinateChosen = e.target.id;
+      render();
+    }
+  }
+}
+
+function shipDirectionHandler(e) {
+  if (currentCoordinateChosen) {
+    let direction = null;
+    switch (e.code) {
+      case "ArrowLeft":
+        direction = -2;
+        break;
+      case "ArrowUp":
+        direction = 1;
+        break;
+      case "ArrowRight":
+        direction = 2;
+        break;
+      case "ArrowDown":
+        direction = -1;
+        break;
+    }
+    if (direction) {
+      console.log(direction);
+      let currentShip = SHIPNAMES[currentPlacingShipIndex];
+      let shipCoordinates = getSpanningCoordinates(currentCoordinateChosen, direction, SHIPS[currentShip].health);
+      console.log(shipCoordinates);
+      if (shipCoordinates) {
+        let overlapFound = isOverlapping(shipCoordinates, currentShip, player1.ships);
+        if (!overlapFound) {
+          player1.ships[currentShip] = {
+            health: SHIPS[currentShip].health,
+            coordinates: shipCoordinates
+          };
+          previousCoordinateChosen = currentCoordinateChosen;
+          currentCoordinateChosen = null;
+          currentPlacingShipIndex += 1;
+        } else {
+          alert("choose a different location!!!");
+          previousCoordinateChosen = currentCoordinateChosen;
+          currentCoordinateChosen = null;
+        }
+        render();
+      }
+    }
+    if (currentPlacingShipIndex === SHIPNAMES.length) {
+      console.log("got all ships, initializing...");
+      isPlacingShips = false;
+      boardElement.removeEventListener("click", shipPlacementHandler);
+      boardElement.removeEventListener("keydown", shipDirectionHandler);
+      startGame();
+    }
+  }
+}
+
+function gameBoardHandler(e) {
   /*
   if there's no winner, it's the player's turn, nothing is rendering, the shot hasn't been taken before and it wasn't the board that was clicked,
     check the shot
@@ -27,7 +173,10 @@ boardElement.addEventListener("click", (e) => {
     && !isRendering
     && player1.hits.indexOf(e.target.id) === -1
     && player1.misses.indexOf(e.target.id) === -1
-    && e.target.id !== "board" ) {
+    && e.target.classList.contains("cell")) {
+    if (isPlacingShips) {
+
+    } else {
       isRendering = true;
       registerShot(e.target.id);
       if (!winner) {
@@ -38,55 +187,8 @@ boardElement.addEventListener("click", (e) => {
           isRendering = false;
         }, TIMEOUT);
       }
+    }
   }
-});
-
-/*----- functions -----*/
-
-init();
-
-function init() {
-  isRendering = false;
-  winner = null;
-  player1 = {
-    name: "💃 Player 1 🕺",
-    ships: {
-      carrier: { health: 5, coordinates: ["D2","D3","D4","D5","D6"] },
-      battleship: { health: 4, coordinates: ["E3","F3","G3","H3"] },
-      cruiser: { health: 3, coordinates: ["E4","E5","E6"] },
-      submarine: { health: 3, coordinates: ["F4","F5","F6"] },
-      destroyer: { health: 2, coordinates: ["G4","G5"] },
-    },
-    hits: [],
-    misses: []
-  };
-
-  player2 = {
-    name: "🤖 Player 2 🤖",
-    ships: {
-      carrier: { health: 5, coordinates: ["A0","A1","A2","A3","A4"] },
-      battleship: { health: 4, coordinates: ["D2","D3","D4","D5"] },
-      cruiser: { health: 3, coordinates: ["D8","E8","F8"] },
-      submarine: { health: 3, coordinates: ["G3","H3","I3"] },
-      destroyer: { health: 2, coordinates: ["J5","J6"] },
-    },
-    hits: [],
-    misses: [],
-    searchArray: [],
-    hitDuringSearch: [],
-    // pointsOfInterest: [],
-  };
-
-    // TODO: let player1 choose their own positions
-  placeShips(player1);
-  placeShips(player2);
-
-  player1NameElement.textContent = player1.name;
-  player1ShipListElement.innerHTML = player1.ships;
-  player2NameElement.textContent = player2.name;
-  player2ShipListElement.innerHTML = player2.ships;
-  currentPlayer = player1;
-  render();
 }
 
 function doPlayer2() {
@@ -140,7 +242,6 @@ function doPlayer2() {
           player2.searchArray[player2.searchArray.length - 1].push(nextCoordinate, shotDirection);
         }
       } else {
-        // player2.hitDuringSearch.push(shotCoordinate);
         // add all the valid surrounding coordinates
         let surroundingCoordinates = getSurroundingCoordinates(shotCoordinate);
         console.log(surroundingCoordinates);
@@ -270,8 +371,7 @@ function getSpanningCoordinates(headCoordinate, direction, health) {
 
 function getSurroundingCoordinates(centerCoordinate) {
   let surroundingCoordinates = [];
-  // randomize the order to make prevent bias searching in one direction
-
+  // randomize the order to prevent bias searching in one direction
   for (direction of shuffle(DIRECTIONS)) {
     let possibleCoordinate = getAdjacentCoordinate(centerCoordinate, direction);
     if (possibleCoordinate
@@ -330,28 +430,20 @@ function placeShips(player) {
     if they're all good, assign the coordinates
     else, redo
   */
-  for (ship in player.ships) {
+  for (ship in SHIPS) {
     let openSpotFound = false;
     while (!openSpotFound) {
       let headCoordinate = getRandomCoordinate();
       let direction = DIRECTIONS[Math.floor(Math.random()*DIRECTIONS.length)];
-      let spanningCoordinates = getSpanningCoordinates(headCoordinate, direction, player.ships[ship].health);
+      let spanningCoordinates = getSpanningCoordinates(headCoordinate, direction, SHIPS[ship].health);
       if (spanningCoordinates) {
         // check for overlaps
-        let overlapFound = false;
-        overlapCheck:
-        for (otherShip in player.ships) {
-          if (ship !== otherShip) {
-            for (coordinate of spanningCoordinates) {
-              if (player.ships[otherShip].coordinates.indexOf(coordinate) >= 0) {
-                overlapFound = true;
-                break overlapCheck;
-              }
-            }
-          }
-        }
+        let overlapFound = isOverlapping(spanningCoordinates, ship, player.ships);
         if (!overlapFound) {
-          player.ships[ship].coordinates = spanningCoordinates;
+          player.ships[ship] = {
+            health: SHIPS[ship].health,
+            coordinates: spanningCoordinates
+          };
           openSpotFound = true;
         }
       }
@@ -359,12 +451,33 @@ function placeShips(player) {
   }
 }
 
+function isOverlapping(spanningCoordinates, shipName, ships) {
+  let overlapFound = false;
+  overlapCheck:
+  for (otherShip in ships) {
+    if (shipName !== otherShip) {
+      for (coordinate of spanningCoordinates) {
+        if (ships[otherShip].coordinates.indexOf(coordinate) >= 0) {
+          overlapFound = true;
+          break overlapCheck;
+        }
+      }
+    }
+  }
+  return overlapFound;
+}
+
 function renderMinimap() {
   for (ship in player1.ships) {
     let currentShip = player1.ships[ship];
-    let shipColor = currentShip.health === 0 ? "red" : "green";
+    let shipColour;
     for (coordinate of currentShip.coordinates) {
-      minimapElement.querySelector(`#m${coordinate}`).style.backgroundColor = player2.hits.indexOf(coordinate) >= 0 ? "red" : shipColor;
+      if (currentShip.health === 0) {
+        shipColour = "dead";
+      } else {
+        shipColour = player2.hits.indexOf(coordinate) >= 0 ? "hit" : "alive";
+      }
+      minimapElement.querySelector(`#m${coordinate}`).classList.add(shipColour);
     }
   }
 }
@@ -372,11 +485,11 @@ function renderMinimap() {
 function renderShipList(player) {
   let htmlString = "";
   for (ship in player.ships) {
-    let shipColor = "green";
+    let shipColour = "alive";
     if (player.ships[ship].health === 0) {
-      shipColor = "red";
+      shipColour = "dead";
     }
-    htmlString += `<li style="color: ${shipColor}">${ship}</li>`;
+    htmlString += `<li class="${shipColour}">${ship}</li>`;
   }
   return htmlString;
 }
@@ -388,32 +501,55 @@ function renderWinner() {
 }
 
 function render() {
+  if (isPlacingShips) {
+    messageElement.textContent = `Choose a starting coordinate for your ${SHIPNAMES[currentPlacingShipIndex]}`;
+    if (currentCoordinateChosen) {
+      messageElement.textContent = `Choose a direction for your ${SHIPNAMES[currentPlacingShipIndex]} by pressing a directional arrow key.`;
+      boardElement.querySelector(`#${currentCoordinateChosen}`).classList.add("head-coordinate");
+    }
+    for (ship in player1.ships) {
+      for (shipCoordinate of player1.ships[ship].coordinates) {
+        boardElement.querySelector(`#${shipCoordinate}`).classList.add("alive");
+      }
+    }
+  } else {
+    for (ship in player1.ships) {
+      for (shipCoordinate of player1.ships[ship].coordinates) {
+        boardElement.querySelector(`#${shipCoordinate}`).classList.remove("alive");
+      }
+    }
+  }
+  if (previousCoordinateChosen) {
+    boardElement.querySelector(`#${previousCoordinateChosen}`).classList.remove("head-coordinate");
+  }
   let opponent = currentPlayer === player1 ? player2 : player1;
   renderMinimap();
   // reset board to water
   for (shot of opponent.hits) {
-    boardElement.querySelector(`#${shot}`).style.backgroundColor = "lightblue";
+    boardElement.querySelector(`#${shot}`).className = "cell water";
   }
   for (shot of opponent.misses) {
-    boardElement.querySelector(`#${shot}`).style.backgroundColor = "lightblue";
+    boardElement.querySelector(`#${shot}`).className = "cell water";
   }
 
-  // render currentPlayer's shots
-  for (shot of currentPlayer.hits) {
-    boardElement.querySelector(`#${shot}`).style.backgroundColor = "red";
-  }
-  for (shot of currentPlayer.misses) {
-    boardElement.querySelector(`#${shot}`).style.backgroundColor = "yellow";
-  }
-  for (ship in opponent.ships) {
-    if (opponent.ships[ship].health === 0) {
-      for (shipCoordinate of opponent.ships[ship].coordinates) {
-        boardElement.querySelector(`#${shipCoordinate}`).style.backgroundColor = "#330009";
+  if (currentPlayer) {
+    // render currentPlayer's shots
+    for (shot of currentPlayer.hits) {
+      boardElement.querySelector(`#${shot}`).classList.add("hit");
+    }
+    for (shot of currentPlayer.misses) {
+      boardElement.querySelector(`#${shot}`).classList.add("miss");
+    }
+    for (ship in opponent.ships) {
+      if (opponent.ships[ship].health === 0) {
+        for (shipCoordinate of opponent.ships[ship].coordinates) {
+          boardElement.querySelector(`#${shipCoordinate}`).classList.add("dead");
+        }
       }
     }
+    messageElement.textContent = `Current player: ${currentPlayer.name}`;
+    player1ShipListElement.innerHTML = renderShipList(player1);
+    player2ShipListElement.innerHTML = renderShipList(player2);
   }
-  messageElement.textContent = `Current player: ${currentPlayer.name}`;
-  player1ShipListElement.innerHTML = renderShipList(player1);
-  player2ShipListElement.innerHTML = renderShipList(player2);
   renderWinner();
 }
