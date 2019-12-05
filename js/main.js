@@ -25,12 +25,15 @@ let isPlacingShips, currentCoordinateChosen, currentPlacingShipIndex, previousCo
 let currentPlayer, player1, player2, winner, isRendering;
 
 /*----- cached element references -----*/
+let bodyElement = document.querySelector("body");
 let loadingElement = document.querySelector("#loading");
 let boardElement = document.querySelector("#board");
 let messageElement = document.querySelector("#message");
 let minimapElement = document.querySelector("#minimap");
+let player1Info = document.querySelector("#player1-info");
 let player1NameElement = document.querySelector("#player1-name");
 let player1ShipListElement = document.querySelector("#player1-info .ship-list");
+let player2Info = document.querySelector("#player2-info");
 let player2NameElement = document.querySelector("#player2-name");
 let player2ShipListElement = document.querySelector("#player2-info .ship-list");
 
@@ -71,25 +74,6 @@ function init() {
   isPlacingShips = true;
 
   if (!isPlacingShips) {
-    //--------------- ONLY FOR TESTING PURPOSES ---------------
-    // player1.ships = {
-      // carrier: { health: 5, coordinates: ["D2","D3","D4","D5","D6"] },
-      // battleship: { health: 4, coordinates: ["E3","F3","G3","H3"] },
-      // cruiser: { health: 3, coordinates: ["E4","E5","E6"] },
-      // submarine: { health: 3, coordinates: ["F4","F5","F6"] },
-      // destroyer: { health: 2, coordinates: ["G4","G5"] }
-    // };
-    // player2.ships = {
-    //   carrier: { health: 5, coordinates: ["A0","A1","A2","A3","A4"] },
-    //   battleship: { health: 4, coordinates: ["D2","D3","D4","D5"] },
-    //   cruiser: { health: 3, coordinates: ["D8","E8","F8"] },
-    //   submarine: { health: 3, coordinates: ["G3","H3","I3"] },
-    //   destroyer: { health: 2, coordinates: ["J5","J6"] }
-    // };
-    // player2.searchArray.push([]);
-    // player2.searchArray[0].push("E4", null);
-    //---------------/ONLY FOR TESTING PURPOSES ---------------
-    // registerGameListener();
     boardElement.removeEventListener("click", shipPlacementHandler);
     document.removeEventListener("keydown", shipDirectionHandler);
     startGame();
@@ -99,8 +83,10 @@ function init() {
   }
 
   render();
-  // setTimeout(() => loadingElement.style.display = "none", 1000);
-  loadingElement.style.display = "none";
+  setTimeout(() => {
+    loadingElement.style.display = "none";
+    bodyElement.style.overflow = "auto";
+  }, 1000);
 }
 
 function generateBoardAndMinimap() {
@@ -265,16 +251,15 @@ function doPlayer2() {
   } else {
     [shotCoordinate, shotDirection] = player2.searchArray.pop();
   }
-  // console.log(`FIRE AT ${shotCoordinate}, ${shotDirection}`);
+  renderSelectedShot(shotCoordinate);
   let hitLanded = registerShot(shotCoordinate);
   let nextCoordinate;
 
   if (hitLanded) {
     player2.hitDuringSearch.push(shotCoordinate);
     if (player1.ships[hitLanded].health === 0) {
-      // console.log("hit landed, sunk ship");
+      // ship has been destroyed
       player2.deadShips.push(...player1.ships[hitLanded].coordinates);
-      // if the ship is sunk, clear the search array
       player2.searchArray = [];
       // if any of the hits lead to the ship being sunk, filter them out
       player2.hitDuringSearch = player2.hitDuringSearch.filter(coordinate => player1.ships[hitLanded].coordinates.indexOf(coordinate) === -1);
@@ -287,7 +272,6 @@ function doPlayer2() {
     } else {
       // ship still alive
       if (shotDirection) {
-        // console.log("ship hit, still alive");
         // go the same direction, if we cant go in that direction anymore, go the other way of initial hit
         nextCoordinate = getAdjacentCoordinate(shotCoordinate, shotDirection);
 
@@ -299,9 +283,7 @@ function doPlayer2() {
           player2.searchArray[player2.searchArray.length - 1].push(nextCoordinate, shotDirection);
         }
       } else {
-        // random shot that led to a hit
-        // console.log("ship hit, add surroundings");
-        // add all the valid surrounding coordinates
+        // random shot that led to a hit - add all the valid surrounding coordinates
         let surroundingCoordinates = getSurroundingCoordinates(shotCoordinate);
         player2.searchArray = player2.searchArray.concat(surroundingCoordinates);
       }
@@ -309,7 +291,6 @@ function doPlayer2() {
   } else {
     // missed shot
     if (shotDirection) {
-        // console.log("go the other way!");
         if (getCoordinateDistance(shotCoordinate, player2.hitDuringSearch[0]) >= 2) {
           nextCoordinate =  getAdjacentCoordinate(shotCoordinate, -shotDirection);
           // if this coordinate is already in the search array, remove it since we want to prioritize it on the next turn
@@ -329,8 +310,7 @@ function doPlayer2() {
         }
     }
   }
-  // console.log(player2);
-  setTimeout(() => {
+  if (!winner) setTimeout(() => {
     currentPlayer = player1;
     render();
   }, TIMEOUT);
@@ -580,10 +560,27 @@ function renderShipList(player) {
 function renderWinner() {
   if (winner) {
     messageElement.textContent = `The winner is ${winner.name}!`;
+    bodyElement.classList.add("winner-found");
+    boardElement.style.opacity = "0.3";
   }
 }
 
+function renderSelectedShot(coordinate) {
+  let shotElement = boardElement.querySelector(`#${coordinate}`);
+  shotElement.classList.add("selected-shot");
+  setTimeout(() => {
+    shotElement.classList.remove("selected-shot");
+  },200);
+}
+
 function render() {
+  if (currentPlayer === player1) {
+    player1Info.classList.add("player-current");
+    player2Info.classList.remove("player-current");
+  } else if (currentPlayer === player2) {
+    player1Info.classList.remove("player-current");
+    player2Info.classList.add("player-current");
+  }
   if (isPlacingShips) {
     messageElement.textContent = `Choose a starting coordinate for your ${SHIPNAMES[currentPlacingShipIndex]} (${currentPlacingShipIndex < SHIPNAMES.length ? SHIPS[SHIPNAMES[currentPlacingShipIndex]].health : ""} spaces)`;
     if (currentCoordinateChosen) {
@@ -606,6 +603,7 @@ function render() {
     boardElement.querySelector(`#${previousCoordinateChosen}`).classList.remove("head-coordinate");
   }
   let opponent = currentPlayer === player1 ? player2 : player1;
+
   renderMinimap();
   // reset board to water
   for (shot of opponent.hits) {

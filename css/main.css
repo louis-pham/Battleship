@@ -8,18 +8,31 @@ body {
   position: relative;
   font-size: 12px;
   font-family: Montserrat, sans-serif;
-  background-color: #444;
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.winner-found {
+  background: linear-gradient( rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.65) ),url(https://thumbs.gfycat.com/ChillyAnimatedEuropeanpolecat-size_restricted.gif);
+  background-size: contain;
+  background-attachment: fixed;
+  color: lightgreen;
+}
+
+.winner-found .message-container {
+  background: #9ee8ab;
+  color: black;
 }
 
 header {
   padding: 20px;
-  background: rgba(0, 0, 0, 0.7);
+  background: #272343;
 }
 
 h1 {
   color: white;
   font-family: Audiowide, sans-serif;
-  font-size: 3em;
+  font-size: 2.2em;
   font-weight: bold;
   text-align: center;
   text-transform: uppercase;
@@ -27,6 +40,7 @@ h1 {
 
 main {
   /* min-height: 600px; */
+  padding: 0 20px;
   display: grid;
   grid-template-columns: 1fr 3fr 1fr;
   grid-template-rows: 0.75fr repeat(2, 3fr) 0.75fr;
@@ -42,12 +56,13 @@ li {
 
 li.alive {
   background: none;
-  color: green;
+  color: #066b00;
 }
 
 li.dead {
   background: none;
-  color: #330009;
+  color: #c10000;
+  text-decoration: line-through;
 }
 
 li.hit {
@@ -67,6 +82,13 @@ footer {
 
 .my-name {
   margin-left: auto;
+  color: lightblue;
+  font-weight: bold;
+  font-size: 1.4em;
+}
+
+.my-name > a {
+  color: #357c9e;
 }
 
 .loading {
@@ -76,10 +98,13 @@ footer {
   height: 100vh;
   width: 100vw;
   position: absolute;
-  background-color: white;
+  background-color: #73c5ec;
+  font-size: 3em;
+  font-weight: bold;
 }
 
 .message-container {
+  margin-bottom: 5px;
   grid-area: message;
   display: flex;
   justify-content: center;
@@ -91,8 +116,10 @@ footer {
   min-width: 150px;
   display: flex;
   flex-direction: column;
-  padding: 7px;
+  padding: 2px;
   align-items: center;
+  border-radius: 5px;
+  background-color: #bae8e8;
 }
 
 .player1-info {
@@ -103,15 +130,22 @@ footer {
   grid-area: player2;
 }
 
+.player-current {
+  background-color: #93ebff;
+  box-shadow: 2px 2px 11px 3px rgba(0, 0, 0, 0.61);
+  transform: scale(1.1);
+}
+
 .ship-list {
   font-size: 1.5em;
   list-style-type: none;
   text-transform: uppercase;
+  margin-top: 30px;
 }
 
 .minimap-container {
   margin-top: auto;
-
+  margin-bottom: 10px;
 }
 
 .minimap {
@@ -133,7 +167,7 @@ footer {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: white;
+  background-color: #bae8e8;
   font-weight: bold;
   font-size: 3em;
 }
@@ -151,7 +185,7 @@ footer {
 
 .cell {
   height: 50px;
-  background: lightblue;
+  background: #e3f6f5;
 }
 
 .cell:hover {
@@ -164,11 +198,11 @@ footer {
 }
 
 .water {
-  background-color: lightblue;
+  background-color: #e3f6f5;
 }
 
 .alive {
-  background-color: green;
+  background-color: #3eff3e;
 }
 
 .hit {
@@ -176,9 +210,13 @@ footer {
 }
 
 .miss {
-  background-color: yellow;
+  background-color: #ffd800;
 }
 
 .dead {
   background-color: #330009;
+}
+
+.selected-shot {
+  background-color: #bd06ff;
 }
