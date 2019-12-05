@@ -5,6 +5,7 @@
 }
 
 body {
+  position: relative;
   font-size: 12px;
   font-family: Montserrat, sans-serif;
   background-color: #444;
@@ -33,6 +34,35 @@ main {
     "message message message"
     "player1 board player2"
     "player1 board player2";
+}
+
+li {
+  color: black;
+}
+
+li.alive {
+  background: none;
+  color: green;
+}
+
+li.dead {
+  background: none;
+  color: #330009;
+}
+
+li.hit {
+  background: none;
+  color: red;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  position: absolute;
+  background-color: white;
 }
 
 .message-container {
