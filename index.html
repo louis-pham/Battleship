@@ -16,7 +16,7 @@
       <h1>Battleship</h1>
     </header>
     <main>
-      <div class="message-container">
+      <div class="message-container flex-ctr">
         <span id="message">Test 123</span>
       </div>
       <div id="player1-info" class="player-info player1-info">
@@ -33,11 +33,32 @@
         <ul class="ship-list"></ul>
       </div>
     </main>
-    <footer>
+    <footer class="flex-ctr">
       <span class="my-name">
         Created by <a href="http://louis-pham.github.io/" target="_blank">Louis Pham</a>
       </span>
     </footer>
+    <div class="modal flex-ctr">
+      <div class="modal-inputs flex-ctr">
+        <img src="https://cdn.bulbagarden.net/upload/thumb/3/3e/Lets_Go_Pikachu_Eevee_Professor_Oak.png/180px-Lets_Go_Pikachu_Eevee_Professor_Oak.png">
+        <div class="page page__1 page--current">
+          <h3>Welcome to Battleship!</h3>
+        </div>
+        <div class="page page__2">
+          <h3>What's your name again?</h3>
+          <input id="player1-name-input" type="text" name="" value="" placeholder="Player 1">
+        </div>
+        <div class="page page__3">
+          <h3>That's right! It was ______! What's your opponent's again?????</h3>
+          <input id="player2-name-input" type="text" name="" value="" placeholder="Player 2">
+        </div>
+        <div class="page page__4">
+          <h3>That's right! It was ______! Alright, go out there and catch 'em all!</h3>
+        </div>
+        <button id="page-change" type="button" name="button">Next</button>
+        <span class="disclaimer">* Nintendo pls dont sue me I swear im not making any money on this game its merely for educational purposes if u want me to take it down just slide in my DMs</span>
+      </div>
+    </div>
   </body>
   <script type="text/javascript" defer src="js/main.js"></script>
 </html>

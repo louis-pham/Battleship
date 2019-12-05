@@ -73,12 +73,9 @@ li.hit {
 }
 
 footer {
-  display: flex;
   min-height: 70px;
   background: black;
   color: white;
-  justify-content: center;
-  align-items: center;
   padding: 20px;
 }
 
@@ -103,14 +100,12 @@ footer {
   background-color: #73c5ec;
   font-size: 3em;
   font-weight: bold;
+  z-index: 100;
 }
 
 .message-container {
   margin: 5px 0;
   grid-area: message;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   font-size: 2em;
   border-radius: 5px;
 }
@@ -224,4 +219,67 @@ footer {
 
 .selected-shot {
   background-color: #bd06ff;
+}
+
+.modal {
+  position: absolute;
+  top: 0;
+  height: 100vh;
+  width: 100vw;
+  background-color: rgba(0,0,0,0.75);
+}
+
+.modal-inputs {
+  position: relative;
+  height: 70vh;
+  width: 70vw;
+  background: white;
+  border-radius: 10px;
+  padding: 30px;
+}
+
+.modal-inputs input {
+  margin: 10px 0;
+  padding: 5px;
+  width: 100%;
+  font-size: 1.4em;
+}
+
+.modal-inputs button {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  background: #ffac45;
+  border: none;
+  font-size: 1.4em;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.page {
+  display: none;
+  flex-grow: 1;
+}
+
+.page h3 {
+  font-size: 1.5em;
+}
+
+.page--current {
+  display: block;
+}
+
+.disclaimer {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  color: red;
+}
+
+.flex-ctr {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

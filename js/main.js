@@ -21,10 +21,12 @@ const SHIPNAMES = Object.keys(SHIPS);
 
 /*----- app's state (variables) -----*/
 // variables for when user is placing ships; store previous head coordinate to remove styling later
+let pageCount;
 let isPlacingShips, currentCoordinateChosen, currentPlacingShipIndex, previousCoordinateChosen;
 let currentPlayer, player1, player2, winner, isRendering;
 
 /*----- cached element references -----*/
+let pageChangeElement = document.querySelector("#page-change");
 let bodyElement = document.querySelector("body");
 let loadingElement = document.querySelector("#loading");
 let boardElement = document.querySelector("#board");
@@ -38,7 +40,10 @@ let player2NameElement = document.querySelector("#player2-name");
 let player2ShipListElement = document.querySelector("#player2-info .ship-list");
 
 /*----- event listeners -----*/
-
+pageChangeElement.addEventListener("click", () => {
+  pageCount += 1;
+  renderPage();
+});
 boardElement.addEventListener("click", shipPlacementHandler);
 document.addEventListener("keydown", shipDirectionHandler);
 function registerGameListener() {
@@ -68,6 +73,8 @@ function init() {
     hitDuringSearch: [],
     deadShips: []
   };
+
+  pageCount = 1;
 
   isRendering = false;
   winner = null;
@@ -571,6 +578,31 @@ function renderSelectedShot(coordinate) {
   setTimeout(() => {
     shotElement.classList.remove("selected-shot");
   },200);
+}
+
+function renderPage() {
+  if (pageCount > 4) {
+    console.log("close");
+    document.querySelector(".modal").style.display = "none";
+  } else {
+    let currentPageElement = document.querySelector(`.page__${pageCount - 1}`);
+    let nextPageElement = document.querySelector(`.page__${pageCount}`);
+    currentPageElement.classList.remove("page--current");
+    nextPageElement.classList.add("page--current");
+  }
+  if (pageCount === 3) {
+    let customPlayer1Name = document.querySelector("#player1-name-input").value;
+    player1.name = customPlayer1Name === "" ? "Player 1" : customPlayer1Name ;
+    document.querySelector(".page__3 h3").textContent = `That's right! Your name is ${player1.name}!
+    By the way, what's your opponent's name again?`;
+  } else if (pageCount === 4) {
+    let customPlayer2Name = document.querySelector("#player2-name-input").value;
+    player2.name = customPlayer2Name === "" ? "Player 2" : customPlayer2Name;
+    document.querySelector(".page__4 h3").textContent = `That's right! It was ${player2.name}!
+    Alright, go out there and catch 'em all!`;
+    pageChangeElement.textContent = "Finish";
+    pageChangeElement.style.backgroundColor = "#8dd684";
+  }
 }
 
 function render() {
