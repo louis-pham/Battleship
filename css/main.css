@@ -55,6 +55,20 @@ li.hit {
   color: red;
 }
 
+footer {
+  display: flex;
+  min-height: 70px;
+  background: black;
+  color: white;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.my-name {
+  margin-left: auto;
+}
+
 .loading {
   display: flex;
   justify-content: center;

@@ -89,7 +89,7 @@ function init() {
     // player2.searchArray.push([]);
     // player2.searchArray[0].push("E4", null);
     //---------------/ONLY FOR TESTING PURPOSES ---------------
-    registerGameListener();
+    // registerGameListener();
     boardElement.removeEventListener("click", shipPlacementHandler);
     document.removeEventListener("keydown", shipDirectionHandler);
     startGame();
@@ -99,7 +99,7 @@ function init() {
   }
 
   render();
-  // setTimeout(() => loadingElement.style.display = "none",1000);
+  // setTimeout(() => loadingElement.style.display = "none", 1000);
   loadingElement.style.display = "none";
 }
 
@@ -120,7 +120,7 @@ function generateBoardAndMinimap() {
         }
       } else {
         if (column === null) {
-          // this is the column displaying letters
+          // this is the header column displaying letters
           cell.classList.add("grid-header");
           cell.textContent = row;
         } else {
@@ -247,7 +247,7 @@ function doPlayer2() {
   if (player2.searchArray.length === 0) {
     let validShotFound = false;
     if (player2.hitDuringSearch.length > 0) {
-      console.log("still something hit thats not dead yet...");
+      // console.log("still something hit thats not dead yet...");
       // let surroundingsToSearch = getSurroundingCoordinates(player2.hitDuringSearch.pop());
       // player2.searchArray = player2.searchArray.concat(surroundingsToSearch);
       // if (player2.searchArray.length > 0) {
@@ -265,14 +265,14 @@ function doPlayer2() {
   } else {
     [shotCoordinate, shotDirection] = player2.searchArray.pop();
   }
-  console.log(`FIRE AT ${shotCoordinate}, ${shotDirection}`);
+  // console.log(`FIRE AT ${shotCoordinate}, ${shotDirection}`);
   let hitLanded = registerShot(shotCoordinate);
   let nextCoordinate;
 
   if (hitLanded) {
     player2.hitDuringSearch.push(shotCoordinate);
     if (player1.ships[hitLanded].health === 0) {
-      console.log("hit landed, sunk ship");
+      // console.log("hit landed, sunk ship");
       player2.deadShips.push(...player1.ships[hitLanded].coordinates);
       // if the ship is sunk, clear the search array
       player2.searchArray = [];
@@ -287,7 +287,7 @@ function doPlayer2() {
     } else {
       // ship still alive
       if (shotDirection) {
-        console.log("ship hit, still alive");
+        // console.log("ship hit, still alive");
         // go the same direction, if we cant go in that direction anymore, go the other way of initial hit
         nextCoordinate = getAdjacentCoordinate(shotCoordinate, shotDirection);
 
@@ -300,7 +300,7 @@ function doPlayer2() {
         }
       } else {
         // random shot that led to a hit
-        console.log("ship hit, add surroundings");
+        // console.log("ship hit, add surroundings");
         // add all the valid surrounding coordinates
         let surroundingCoordinates = getSurroundingCoordinates(shotCoordinate);
         player2.searchArray = player2.searchArray.concat(surroundingCoordinates);
@@ -309,7 +309,7 @@ function doPlayer2() {
   } else {
     // missed shot
     if (shotDirection) {
-        console.log("go the other way!");
+        // console.log("go the other way!");
         if (getCoordinateDistance(shotCoordinate, player2.hitDuringSearch[0]) >= 2) {
           nextCoordinate =  getAdjacentCoordinate(shotCoordinate, -shotDirection);
           // if this coordinate is already in the search array, remove it since we want to prioritize it on the next turn
@@ -329,7 +329,7 @@ function doPlayer2() {
         }
     }
   }
-  console.log(player2);
+  // console.log(player2);
   setTimeout(() => {
     currentPlayer = player1;
     render();
