@@ -16,12 +16,13 @@ body {
   background: linear-gradient( rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.65) ),url(https://thumbs.gfycat.com/ChillyAnimatedEuropeanpolecat-size_restricted.gif);
   background-size: contain;
   background-attachment: fixed;
-  color: lightgreen;
 }
 
 .winner-found .message-container {
   background: #9ee8ab;
   color: black;
+  z-index: 1;
+  box-shadow: 1px 2px 5px 2px rgba(0, 0, 0, 0.47);
 }
 
 header {
@@ -40,7 +41,8 @@ h1 {
 
 main {
   /* min-height: 600px; */
-  padding: 0 20px;
+  /* padding: 0 20px; */
+  margin: 0 50px;
   display: grid;
   grid-template-columns: 1fr 3fr 1fr;
   grid-template-rows: 0.75fr repeat(2, 3fr) 0.75fr;
@@ -104,19 +106,21 @@ footer {
 }
 
 .message-container {
-  margin-bottom: 5px;
+  margin: 5px 0;
   grid-area: message;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 2em;
+  border-radius: 5px;
 }
 
 .player-info {
   min-width: 150px;
   display: flex;
   flex-direction: column;
-  padding: 2px;
+  padding: 10px;
+  margin: 0 10px;
   align-items: center;
   border-radius: 5px;
   background-color: #bae8e8;
@@ -132,8 +136,9 @@ footer {
 
 .player-current {
   background-color: #93ebff;
-  box-shadow: 2px 2px 11px 3px rgba(0, 0, 0, 0.61);
+  box-shadow: 1px 4px 10px 1px rgba(0, 0, 0, 0.34);
   transform: scale(1.1);
+  border: 5px solid #1ba6c5;
 }
 
 .ship-list {
