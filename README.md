@@ -13,7 +13,7 @@ The player faces a computer in taking down each other's ships. Each turn the pla
 - JavaScript (ES6)
 
 ## Getting Started
-Play a live demo at [ADD THE LINK](https://www.example.com).
+Play a live demo [here](https://battleship-o3nnw7m3q.now.sh/)!
 
 To run it locally, simply clone the repository and open the `index.html` file in a browser.
 
