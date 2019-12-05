@@ -8,7 +8,7 @@ const COLUMNS = [0,1,2,3,4,5,6,7,8,9];
   west: -2
 */
 const DIRECTIONS = [1,2,-1,-2];
-const TIMEOUT = 100;
+const TIMEOUT = 500;
 const SHIPS = {
   "carrier": { health: 5 },
   "battleship": { health: 4 },
@@ -66,29 +66,28 @@ function init() {
     deadShips: []
   };
 
-  isPlacingShips = false;
   isRendering = false;
   winner = null;
+  isPlacingShips = true;
 
   if (!isPlacingShips) {
     //--------------- ONLY FOR TESTING PURPOSES ---------------
-    player1.ships = {
-
-      carrier: { health: 5, coordinates: ["D2","D3","D4","D5","D6"] },
-      battleship: { health: 4, coordinates: ["E3","F3","G3","H3"] },
-      cruiser: { health: 3, coordinates: ["E4","E5","E6"] },
-      submarine: { health: 3, coordinates: ["F4","F5","F6"] },
-      destroyer: { health: 2, coordinates: ["G4","G5"] }
-    };
-    // player2,ships = {
+    // player1.ships = {
+      // carrier: { health: 5, coordinates: ["D2","D3","D4","D5","D6"] },
+      // battleship: { health: 4, coordinates: ["E3","F3","G3","H3"] },
+      // cruiser: { health: 3, coordinates: ["E4","E5","E6"] },
+      // submarine: { health: 3, coordinates: ["F4","F5","F6"] },
+      // destroyer: { health: 2, coordinates: ["G4","G5"] }
+    // };
+    // player2.ships = {
     //   carrier: { health: 5, coordinates: ["A0","A1","A2","A3","A4"] },
     //   battleship: { health: 4, coordinates: ["D2","D3","D4","D5"] },
     //   cruiser: { health: 3, coordinates: ["D8","E8","F8"] },
     //   submarine: { health: 3, coordinates: ["G3","H3","I3"] },
     //   destroyer: { health: 2, coordinates: ["J5","J6"] }
     // };
-    player2.searchArray.push([]);
-    player2.searchArray[0].push("E4", null);
+    // player2.searchArray.push([]);
+    // player2.searchArray[0].push("E4", null);
     //---------------/ONLY FOR TESTING PURPOSES ---------------
     registerGameListener();
     boardElement.removeEventListener("click", shipPlacementHandler);
@@ -184,6 +183,7 @@ function shipDirectionHandler(e) {
       if (shipCoordinates) {
         let overlapFound = isOverlapping(shipCoordinates, currentShip, player1.ships);
         if (!overlapFound) {
+          // valid position for ship, add to player's ships
           player1.ships[currentShip] = {
             health: SHIPS[currentShip].health,
             coordinates: shipCoordinates
@@ -192,6 +192,7 @@ function shipDirectionHandler(e) {
           currentCoordinateChosen = null;
           currentPlacingShipIndex += 1;
         } else {
+          // overlap found
           alert("choose a different location!!!");
           previousCoordinateChosen = currentCoordinateChosen;
           currentCoordinateChosen = null;
@@ -309,20 +310,22 @@ function doPlayer2() {
     // missed shot
     if (shotDirection) {
         console.log("go the other way!");
-        nextCoordinate =  getAdjacentCoordinate(shotCoordinate, -shotDirection);
-        // if this coordinate is already in the search array, remove it since we want to prioritize it on the next turn
-        let pendingSearchIndex = -1;
-        for (pendingSearch of player2.searchArray) {
-          pendingSearchIndex += 1;
-          if (pendingSearch[0] === nextCoordinate) break;
-        }
-        if (pendingSearchIndex < player2.searchArray.length) player2.searchArray.splice(pendingSearchIndex, 1);
+        if (getCoordinateDistance(shotCoordinate, player2.hitDuringSearch[0]) >= 2) {
+          nextCoordinate =  getAdjacentCoordinate(shotCoordinate, -shotDirection);
+          // if this coordinate is already in the search array, remove it since we want to prioritize it on the next turn
+          let pendingSearchIndex = -1;
+          for (pendingSearch of player2.searchArray) {
+            pendingSearchIndex += 1;
+            if (pendingSearch[0] === nextCoordinate) break;
+          }
+          if (pendingSearchIndex < player2.searchArray.length) player2.searchArray.splice(pendingSearchIndex, 1);
 
-        if (nextCoordinate
-          && player2.deadShips.indexOf(nextCoordinate) === -1
-          && player2.misses.indexOf(nextCoordinate) === -1) {
-          player2.searchArray.push([]);
-          player2.searchArray[player2.searchArray.length - 1].push(nextCoordinate, -shotDirection);
+          if (nextCoordinate
+            && player2.deadShips.indexOf(nextCoordinate) === -1
+            && player2.misses.indexOf(nextCoordinate) === -1) {
+            player2.searchArray.push([]);
+            player2.searchArray[player2.searchArray.length - 1].push(nextCoordinate, -shotDirection);
+          }
         }
     }
   }
@@ -485,6 +488,16 @@ function getAdjacentCoordinate(centerCoordinate, direction) {
     }
   }
   return adjacentCoordinate;
+}
+
+function getCoordinateDistance(coordinateA, coordinateB) {
+  if (coordinateA.charAt(0) === coordinateB.charAt(0)) {
+    // in the same row, check column difference
+    return Math.abs(parseInt(coordinateB.charAt(1)) - parseInt(coordinateA.charAt(1)));
+  } else {
+    // in the same column
+    return Math.abs(parseInt(ROWS.indexOf(coordinateB.charAt(0))) - parseInt(ROWS.indexOf(coordinateA.charAt(0))));
+  }
 }
 
 function placeShips(player) {
