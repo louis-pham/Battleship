@@ -1,14 +1,13 @@
 /*----- constants -----*/
 const ROWS = ["A","B","C","D","E","F","G","H","I","J"];
 const COLUMNS = [0,1,2,3,4,5,6,7,8,9];
-/*
-  north: 1
-  south: -1
-  east: 2
-  west: -2
-*/
-const DIRECTIONS = [1,2,-1,-2];
-const TIMEOUT = 500;
+const DIRECTIONS = [
+   1, // north
+   2, // east
+  -1, // south
+  -2  // west
+];
+const TURNTIMEOUT = 500;
 const SHIPS = {
   "carrier": { health: 5 },
   "battleship": { health: 4 },
@@ -26,7 +25,7 @@ let isPlacingShips, currentCoordinateChosen, currentPlacingShipIndex, previousCo
 let currentPlayer, player1, player2, winner, isRendering;
 
 /*----- cached element references -----*/
-let pageChangeElement = document.querySelector("#page-change");
+let modalChangeButtonElement = document.querySelector("#modal-change");
 let bodyElement = document.querySelector("body");
 let loadingElement = document.querySelector("#loading");
 let boardElement = document.querySelector("#board");
@@ -40,9 +39,9 @@ let player2NameElement = document.querySelector("#player2-name");
 let player2ShipListElement = document.querySelector("#player2-info .ship-list");
 
 /*----- event listeners -----*/
-pageChangeElement.addEventListener("click", () => {
+modalChangeButtonElement.addEventListener("click", () => {
   pageCount += 1;
-  renderPage();
+  renderModal();
 });
 boardElement.addEventListener("click", shipPlacementHandler);
 document.addEventListener("keydown", shipDirectionHandler);
@@ -92,7 +91,6 @@ function init() {
   render();
   setTimeout(() => {
     loadingElement.style.display = "none";
-    bodyElement.style.overflow = "auto";
   }, 1000);
 }
 
@@ -222,9 +220,9 @@ function gameBoardHandler(e) {
         setTimeout(() => {
           currentPlayer = player2;
           render();
-          setTimeout(doPlayer2, TIMEOUT);
+          setTimeout(doPlayer2, TURNTIMEOUT);
           isRendering = false;
-        }, TIMEOUT);
+        }, TURNTIMEOUT);
       }
     }
   }
@@ -239,15 +237,6 @@ function doPlayer2() {
   let shotDirection;
   if (player2.searchArray.length === 0) {
     let validShotFound = false;
-    if (player2.hitDuringSearch.length > 0) {
-      // console.log("still something hit thats not dead yet...");
-      // let surroundingsToSearch = getSurroundingCoordinates(player2.hitDuringSearch.pop());
-      // player2.searchArray = player2.searchArray.concat(surroundingsToSearch);
-      // if (player2.searchArray.length > 0) {
-      //   [shotCoordinate, shotDirection] = player2.searchArray.pop();
-      //   validShotFound = true;
-      // }
-    }
     while (!validShotFound) {
       shotCoordinate = getRandomCoordinate();
       if (player2.hits.indexOf(shotCoordinate) === -1
@@ -317,10 +306,13 @@ function doPlayer2() {
         }
     }
   }
+  setTimeout(() => {
+    document.querySelector(`#${shotCoordinate}`).classList.remove("selected-shot");
+  },200);
   if (!winner) setTimeout(() => {
     currentPlayer = player1;
     render();
-  }, TIMEOUT);
+  }, TURNTIMEOUT);
 }
 
 function filterSearches(coordinate) {
@@ -575,15 +567,12 @@ function renderWinner() {
 function renderSelectedShot(coordinate) {
   let shotElement = boardElement.querySelector(`#${coordinate}`);
   shotElement.classList.add("selected-shot");
-  setTimeout(() => {
-    shotElement.classList.remove("selected-shot");
-  },200);
 }
 
-function renderPage() {
+function renderModal() {
   if (pageCount > 4) {
-    console.log("close");
     document.querySelector(".modal").style.display = "none";
+    bodyElement.style.overflow = "auto";
   } else {
     let currentPageElement = document.querySelector(`.page__${pageCount - 1}`);
     let nextPageElement = document.querySelector(`.page__${pageCount}`);
@@ -593,15 +582,15 @@ function renderPage() {
   if (pageCount === 3) {
     let customPlayer1Name = document.querySelector("#player1-name-input").value;
     player1.name = customPlayer1Name === "" ? "Player 1" : customPlayer1Name ;
-    document.querySelector(".page__3 h3").textContent = `That's right! Your name is ${player1.name}!
+    document.querySelector(".page__3 h3").innerHTML = `That's right! Your name is <b>${player1.name}</b>!
     By the way, what's your opponent's name again?`;
   } else if (pageCount === 4) {
     let customPlayer2Name = document.querySelector("#player2-name-input").value;
     player2.name = customPlayer2Name === "" ? "Player 2" : customPlayer2Name;
-    document.querySelector(".page__4 h3").textContent = `That's right! It was ${player2.name}!
-    Alright, go out there and catch 'em all!`;
-    pageChangeElement.textContent = "Finish";
-    pageChangeElement.style.backgroundColor = "#8dd684";
+    document.querySelector(".page__4 h3").innerHTML = `That's right! It was <b>${player2.name}</b>!
+    Alright, go out there and <span class="strikeout">catch</span> find 'em all'!`;
+    modalChangeButtonElement.textContent = "Finish";
+    modalChangeButtonElement.style.backgroundColor = "#8dd684";
   }
 }
 

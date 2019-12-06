@@ -34,7 +34,6 @@ h1 {
   color: white;
   font-family: Audiowide, sans-serif;
   font-size: 2.2em;
-  font-weight: bold;
   text-align: center;
   text-transform: uppercase;
 }
@@ -99,7 +98,6 @@ footer {
   position: absolute;
   background-color: #73c5ec;
   font-size: 3em;
-  font-weight: bold;
   z-index: 100;
 }
 
@@ -236,6 +234,7 @@ footer {
   background: white;
   border-radius: 10px;
   padding: 30px;
+  text-align: center;
 }
 
 .modal-inputs input {
@@ -265,10 +264,15 @@ footer {
 
 .page h3 {
   font-size: 1.5em;
+  font-weight: normal;
 }
 
 .page--current {
   display: block;
+}
+
+.strikeout {
+  text-decoration: line-through;
 }
 
 .disclaimer {
