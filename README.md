@@ -19,6 +19,7 @@ Play a live demo [here](https://battleship.lcpham.now.sh/)!
 To run it locally, simply clone the repository and open the `index.html` file in a browser.
 
 ## Next Steps
+- sanitize user input
 - improve styling
 - fine tune AI for weird edge cases
 - improve overall user experience
