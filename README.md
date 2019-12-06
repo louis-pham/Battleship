@@ -24,5 +24,4 @@ To run it locally, simply clone the repository and open the `index.html` file in
 - fine tune AI for weird edge cases
 - improve overall user experience
   - when placing ships (e.g. removing a misplaced head coordinate)
-  - let them choose their own name
 - browser compatibility testing
