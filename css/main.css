@@ -117,6 +117,7 @@ footer {
   align-items: center;
   border-radius: 5px;
   background-color: #bae8e8;
+  box-shadow: 2px 3px 5px 1px #00000021;
 }
 
 .player1-info {
@@ -172,6 +173,7 @@ footer {
 
 .board {
   padding: 20px;
+  margin: 0 20px;
   grid-area: board;
   display: grid;
   grid-template-columns: repeat(11, 1fr);
@@ -179,6 +181,8 @@ footer {
   grid-row-gap: 3px;
   grid-column-gap: 3px;
   min-width: 700px;
+  box-shadow: 2px 3px 5px 1px #00000021;
+  border-radius: 5px;
 }
 
 .cell {
