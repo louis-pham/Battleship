@@ -70,7 +70,7 @@ li.hit {
 }
 
 footer {
-  min-height: 70px;
+  min-height: 82px;
   background: black;
   color: white;
   padding: 20px;
@@ -193,7 +193,7 @@ footer {
   grid-template-rows: repeat(11, 1fr);
   grid-row-gap: 3px;
   grid-column-gap: 3px;
-  min-width: 700px;
+  min-width: 500px;
   box-shadow: 2px 3px 5px 1px #00000021;
   border-radius: 5px;
 }
@@ -259,6 +259,8 @@ footer {
   padding: 5px;
   width: 100%;
   font-size: 1.4em;
+  border-radius: 5px;
+  border: 1px solid grey;
 }
 
 .modal-inputs button {
