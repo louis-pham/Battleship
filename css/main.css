@@ -91,14 +91,25 @@ footer {
 
 .loading {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
   width: 100vw;
   position: absolute;
   background-color: #73c5ec;
-  font-size: 3em;
+	font-size: 1.5em;
+	font-weight: bold;
   z-index: 100;
+}
+
+.loading img {
+  width: 500px;
+  animation: floating 0.8s ease-in-out infinite alternate;
+}
+
+.loading span {
+  margin-top: 50px;
 }
 
 .message-container {
@@ -290,4 +301,26 @@ footer {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.fade-out {
+  animation: fadeOut 1s ease-out forwards;
+}
+
+@keyframes floating {
+  from {
+    transform: translateY(-2px);
+  }
+  to {
+    transform: translateY(2px);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }

@@ -25,6 +25,7 @@ let isPlacingShips, currentCoordinateChosen, currentPlacingShipIndex, previousCo
 let currentPlayer, player1, player2, winner, isRendering;
 
 /*----- cached element references -----*/
+let modalElement = document.querySelector(".modal");
 let modalChangeButtonElement = document.querySelector("#modal-change");
 let bodyElement = document.querySelector("body");
 let loadingElement = document.querySelector("#loading");
@@ -45,12 +46,9 @@ modalChangeButtonElement.addEventListener("click", () => {
 });
 boardElement.addEventListener("click", shipPlacementHandler);
 document.addEventListener("keydown", shipDirectionHandler);
-function registerGameListener() {
-  boardElement.addEventListener("click", gameBoardHandler);
-}
+// the event handler for board clicks (registerGameListener) will be called at a later time
 
 /*----- functions -----*/
-
 init();
 
 function init() {
@@ -90,8 +88,15 @@ function init() {
 
   render();
   setTimeout(() => {
-    loadingElement.style.display = "none";
-  }, 1000);
+    loadingElement.classList.add("fade-out");
+    loadingElement.onanimationend = () => {
+      loadingElement.style.display = "none";
+    };
+  }, 2000);
+}
+
+function registerGameListener() {
+  boardElement.addEventListener("click", gameBoardHandler);
 }
 
 function generateBoardAndMinimap() {
@@ -201,42 +206,51 @@ function shipDirectionHandler(e) {
 }
 
 function gameBoardHandler(e) {
-  /*
-  if there's no winner, it's the player's turn, nothing is rendering, the shot hasn't been taken before and it wasn't the board that was clicked,
-    check the shot
-  */
   if ( !winner
     && currentPlayer === player1
     && !isRendering
+    && !isPlacingShips
     && player1.hits.indexOf(e.target.id) === -1
     && player1.misses.indexOf(e.target.id) === -1
     && e.target.classList.contains("cell")) {
-    if (isPlacingShips) {
-
-    } else {
-      isRendering = true;
-      registerShot(e.target.id);
-      if (!winner) {
-        setTimeout(() => {
-          currentPlayer = player2;
-          render();
-          setTimeout(doPlayer2, TURNTIMEOUT);
-          isRendering = false;
-        }, TURNTIMEOUT);
-      }
+    isRendering = true;
+    registerShot(e.target.id);
+    if (!winner) {
+      setTimeout(() => {
+        currentPlayer = player2;
+        render();
+        setTimeout(doPlayer2, TURNTIMEOUT);
+        isRendering = false;
+      }, TURNTIMEOUT);
     }
   }
 }
 
 function doPlayer2() {
   /*
-    choose a coordinate not within shots already taken
-    register shot
+    BASIC OVERVIEW OF AI:
+    if their is no info on ship whereabouts, fire randomly until there is a hit
+    upon finding a hit, store all the coordinate around it to be looked at some time in the future
+    check surroundings and if we find a hit, add the one next to it in the same direction
+    keep going until the ship has been sunk or we hit water
+    if it hits water, check the opposite end along the string of hits
+    on the other hand, if the ship is sunk, then there's several options from here:
+      1. there were no other hits along that string that DIDN'T destroy the ship -- i.e. every hit along the search contributed to the destruction of that ship -- in this case we go back to shooting randomly
+      2. we may have found other hits along our search for the recently sunken ship -- use one of those as a new starting point to search again
   */
   let shotCoordinate;
   let shotDirection;
   if (player2.searchArray.length === 0) {
     let validShotFound = false;
+    if (player2.hitDuringSearch.length > 0) {
+      // for whatever reason, our search "finished" but there are still hits unaccounted for
+      let surroundingsToSearch = getSurroundingCoordinates(player2.hitDuringSearch.pop());
+      player2.searchArray = player2.searchArray.concat(surroundingsToSearch);
+      if (player2.searchArray.length > 0) {
+        [shotCoordinate, shotDirection] = player2.searchArray.pop();
+        validShotFound = true;
+      }
+    }
     while (!validShotFound) {
       shotCoordinate = getRandomCoordinate();
       if (player2.hits.indexOf(shotCoordinate) === -1
@@ -257,7 +271,7 @@ function doPlayer2() {
       // ship has been destroyed
       player2.deadShips.push(...player1.ships[hitLanded].coordinates);
       player2.searchArray = [];
-      // if any of the hits lead to the ship being sunk, filter them out
+      // filter out hits that contributed to ship sinking
       player2.hitDuringSearch = player2.hitDuringSearch.filter(coordinate => player1.ships[hitLanded].coordinates.indexOf(coordinate) === -1);
 
       if (player2.hitDuringSearch.length > 0) {
@@ -270,7 +284,6 @@ function doPlayer2() {
       if (shotDirection) {
         // go the same direction, if we cant go in that direction anymore, go the other way of initial hit
         nextCoordinate = getAdjacentCoordinate(shotCoordinate, shotDirection);
-
         // since push takes an array and adds each element of it to the existing array, we add an empty array first and push the coordinate and shotdirection to the empty array
         if (nextCoordinate
           && player2.hits.indexOf(nextCoordinate) === -1
@@ -312,7 +325,7 @@ function doPlayer2() {
   if (!winner) setTimeout(() => {
     currentPlayer = player1;
     render();
-  }, TURNTIMEOUT);
+  }, TURNTIMEOUT * 1.5);
 }
 
 function filterSearches(coordinate) {
@@ -321,25 +334,16 @@ function filterSearches(coordinate) {
 
 function registerShot(coordinate) {
   let opponent = currentPlayer === player1 ? player2 : player1;
-  /*
-  for each of opponent's ship
-    if coordinate is in the ship's coordinate array,
-      add coordinate to player's hits
-      reduce opponent ship's health
-      break out early
-  check if player's won
-  switch to opponent's turn
-  returns the name of the ship if hit, null otherwise
-  */
   let hitLanded = null;
-  loop1:
+  shipCoordinateCheck:
+  // check if the hit is in one of the opponent's ships' coordinates
   for (ship in opponent.ships) {
     for (shipCoordinate of opponent.ships[ship].coordinates) {
       if (coordinate === shipCoordinate) {
         hitLanded = ship;
         currentPlayer.hits.push(coordinate);
         opponent.ships[ship].health--;
-        break loop1;
+        break shipCoordinateCheck;
       }
     }
   }
@@ -420,7 +424,7 @@ function getSpanningCoordinates(headCoordinate, direction, health) {
 
 function getSurroundingCoordinates(centerCoordinate) {
   let surroundingCoordinates = [];
-  // randomize the order to prevent bias searching in one direction
+  // randomize the order to prevent bias searching in one circular direction
   for (direction of shuffle(DIRECTIONS)) {
     let possibleCoordinate = getAdjacentCoordinate(centerCoordinate, direction);
     if (possibleCoordinate
@@ -480,12 +484,6 @@ function getCoordinateDistance(coordinateA, coordinateB) {
 }
 
 function placeShips(player) {
-  /*
-    choose a head position and direction
-    check the coordinates the ship will span over (no overlaps, out of bounds)
-    if they're all good, assign the coordinates
-    else, redo
-  */
   for (ship in SHIPS) {
     let openSpotFound = false;
     while (!openSpotFound) {
@@ -493,7 +491,7 @@ function placeShips(player) {
       let direction = DIRECTIONS[Math.floor(Math.random()*DIRECTIONS.length)];
       let spanningCoordinates = getSpanningCoordinates(headCoordinate, direction, SHIPS[ship].health);
       if (spanningCoordinates) {
-        // check for overlaps
+        // check the coordinates the ship will span over (no overlaps, out of bounds)
         let overlapFound = isOverlapping(spanningCoordinates, ship, player.ships);
         if (!overlapFound) {
           player.ships[ship] = {
@@ -571,8 +569,12 @@ function renderSelectedShot(coordinate) {
 
 function renderModal() {
   if (pageCount > 4) {
-    document.querySelector(".modal").style.display = "none";
-    bodyElement.style.overflow = "auto";
+    modalElement.classList.add("fade-out");
+    modalElement.onanimationend = () => {
+      modalElement.style.display = "none";
+      bodyElement.style.overflow = "auto";
+    };
+
   } else {
     let currentPageElement = document.querySelector(`.page__${pageCount - 1}`);
     let nextPageElement = document.querySelector(`.page__${pageCount}`);
@@ -603,9 +605,9 @@ function render() {
     player2Info.classList.add("player-current");
   }
   if (isPlacingShips) {
-    messageElement.textContent = `Choose a starting coordinate for your ${SHIPNAMES[currentPlacingShipIndex]} (${currentPlacingShipIndex < SHIPNAMES.length ? SHIPS[SHIPNAMES[currentPlacingShipIndex]].health : ""} spaces)`;
+    messageElement.innerHTML = `Choose a starting coordinate for your <b>${SHIPNAMES[currentPlacingShipIndex]} (${currentPlacingShipIndex < SHIPNAMES.length ? SHIPS[SHIPNAMES[currentPlacingShipIndex]].health : ""} spaces)</b>`;
     if (currentCoordinateChosen) {
-      messageElement.textContent = `Choose a direction for your ${SHIPNAMES[currentPlacingShipIndex]} by pressing a directional arrow key (${currentPlacingShipIndex < SHIPNAMES.length ? SHIPS[SHIPNAMES[currentPlacingShipIndex]].health : ""} spaces)`;
+      messageElement.innerHTML = `Choose a direction for your <b>${SHIPNAMES[currentPlacingShipIndex]}</b> by pressing a <b>directional arrow key (${currentPlacingShipIndex < SHIPNAMES.length ? SHIPS[SHIPNAMES[currentPlacingShipIndex]].health : ""} spaces)</b>`;
       boardElement.querySelector(`#${currentCoordinateChosen}`).classList.add("head-coordinate");
     }
     for (ship in player1.ships) {
@@ -623,8 +625,8 @@ function render() {
   if (previousCoordinateChosen) {
     boardElement.querySelector(`#${previousCoordinateChosen}`).classList.remove("head-coordinate");
   }
-  let opponent = currentPlayer === player1 ? player2 : player1;
 
+  let opponent = currentPlayer === player1 ? player2 : player1;
   renderMinimap();
   // reset board to water
   for (shot of opponent.hits) {
@@ -649,7 +651,7 @@ function render() {
         }
       }
     }
-    messageElement.textContent = `Current player: ${currentPlayer.name}`;
+    messageElement.innerHTML = `Current player: <b>${currentPlayer.name}</b>`;
     player1ShipListElement.innerHTML = renderShipList(player1);
     player2ShipListElement.innerHTML = renderShipList(player2);
   }
