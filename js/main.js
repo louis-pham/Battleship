@@ -88,10 +88,10 @@ function init() {
 
   render();
   setTimeout(() => {
-    loadingElement.classList.add("fade-out");
-    loadingElement.onanimationend = () => {
+    loadingElement.addEventListener("animationend", () => {
       loadingElement.style.display = "none";
-    };
+    });
+    loadingElement.classList.add("fade-out");
   }, 2000);
 }
 
@@ -570,11 +570,10 @@ function renderSelectedShot(coordinate) {
 function renderModal() {
   if (pageCount > 4) {
     modalElement.classList.add("fade-out");
-    modalElement.onanimationend = () => {
+    modalElement.addEventListener("animationend", () => {
       modalElement.style.display = "none";
       bodyElement.style.overflow = "auto";
-    };
-
+    });
   } else {
     let currentPageElement = document.querySelector(`.page__${pageCount - 1}`);
     let nextPageElement = document.querySelector(`.page__${pageCount}`);
