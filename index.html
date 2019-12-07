@@ -6,7 +6,7 @@
     <title>Battleship</title>
     <meta name="author" content="Louis Pham" />
     <link rel="shortcut icon" href="favicon.ico">
-    <link href="https://fonts.googleapis.com/css?family=Audiowide|Montserrat:400,700,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Audiowide%7CMontserrat:400,700,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
   </head>
   <body>
@@ -22,7 +22,7 @@
         <span id="message">Test 123</span>
       </div>
       <div id="player1-info" class="player-info player1-info">
-        <h2 id="player1-name"></h2>
+        <h2 id="player1-name">Player 1</h2>
         <ul class="ship-list"></ul>
         <div class="minimap-container">
           <h3>Minimap</h3>
@@ -31,7 +31,7 @@
       </div>
       <div id="board" class="board"></div>
       <div id="player2-info" class="player-info player2-info">
-        <h2 id="player2-name"></h2>
+        <h2 id="player2-name">Player 2</h2>
         <ul class="ship-list"></ul>
       </div>
     </main>
@@ -42,17 +42,17 @@
     </footer>
     <div class="modal flex-ctr">
       <div class="modal-inputs flex-ctr">
-        <img src="https://vignette.wikia.nocookie.net/pokemon/images/8/84/Professor_Oak_XY.png/revision/latest?cb=20131221014829">
+        <img alt="professor oak" src="https://vignette.wikia.nocookie.net/pokemon/images/8/84/Professor_Oak_XY.png/revision/latest?cb=20131221014829">
         <div class="page page__1 page--current">
           <h3>Welcome to <b>Battleship</b>!</h3>
         </div>
         <div class="page page__2">
           <h3>What's your name again?</h3>
-          <input id="player1-name-input" type="text" name="" value="" placeholder="Player 1">
+          <input id="player1-name-input" type="text" value="" placeholder="Player 1">
         </div>
         <div class="page page__3">
           <h3>That's right! It was ______! What's your opponent's again?????</h3>
-          <input id="player2-name-input" type="text" name="" value="" placeholder="Player 2">
+          <input id="player2-name-input" type="text" value="" placeholder="Player 2">
         </div>
         <div class="page page__4">
           <h3>That's right! It was ______! Alright, go out there and catch 'em all!</h3>
@@ -61,6 +61,6 @@
         <span class="disclaimer">* Nintendo pls dont sue me I swear im not making any money on this game its merely for educational purposes ty bb ily</span>
       </div>
     </div>
+    <script defer src="js/main.js"></script>
   </body>
-  <script type="text/javascript" defer src="js/main.js"></script>
 </html>
