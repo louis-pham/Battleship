@@ -575,20 +575,20 @@ function renderModal() {
       bodyElement.style.overflow = "auto";
     });
   } else {
-    let currentPageElement = document.querySelector(`.page__${pageCount - 1}`);
-    let nextPageElement = document.querySelector(`.page__${pageCount}`);
-    currentPageElement.classList.remove("page--current");
-    nextPageElement.classList.add("page--current");
+    let currentPageElement = document.querySelector(`#page-${pageCount - 1}`);
+    let nextPageElement = document.querySelector(`#page-${pageCount}`);
+    currentPageElement.classList.remove("page-current");
+    nextPageElement.classList.add("page-current");
   }
   if (pageCount === 3) {
     let customPlayer1Name = document.querySelector("#player1-name-input").value;
-    player1.name = customPlayer1Name === "" ? "Player 1" : customPlayer1Name ;
-    document.querySelector(".page__3 h3").innerHTML = `That's right! Your name is <b>${player1.name}</b>!
+    player1.name = customPlayer1Name === "" ? "Player 1" : customPlayer1Name;
+    document.querySelector("#page-3 h3").innerHTML = `That's right! Your name is <b>${player1.name}</b>!
     By the way, what's your opponent's name again?`;
   } else if (pageCount === 4) {
     let customPlayer2Name = document.querySelector("#player2-name-input").value;
     player2.name = customPlayer2Name === "" ? "Player 2" : customPlayer2Name;
-    document.querySelector(".page__4 h3").innerHTML = `That's right! It was <b>${player2.name}</b>!
+    document.querySelector("#page-4 h3").innerHTML = `That's right! It was <b>${player2.name}</b>!
     Alright, go out there and <span class="strikeout">catch</span> find 'em all'!`;
     modalChangeButtonElement.textContent = "Finish";
     modalChangeButtonElement.style.backgroundColor = "#8dd684";
