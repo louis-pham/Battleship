@@ -3,7 +3,18 @@
 ## Overview
 This is a browser-based version of the popular game __Battleship__.
 
-The player faces a computer in taking down each other's ships. Each turn the player chooses a coordinate on the opponent's board to hit their ships. When the player takes down all of the opponent's ships, they win!
+The player chooses their name and the opponent's (the computer). Afterwards, the player will put down their 5 ships:
+
+| Ship Name     | Health |
+| ------------- |:------:|
+| Carrier       | 5      |
+| Battleship    | 4      |
+| Cruiser       | 3      |
+| Submarine     | 3      |
+| Destroyer     | 2      |
+
+The player will then face the computer in taking down each other's ships. For each turn, the player chooses a coordinate on the computer's board to hit their ships (and likewise for the computer). Whoever takes down all of the opponent's ships will be the winner!
+
 
 ## Screenshots
 ![battleship game screenshot](https://i.imgur.com/uEH6ehN.png)
